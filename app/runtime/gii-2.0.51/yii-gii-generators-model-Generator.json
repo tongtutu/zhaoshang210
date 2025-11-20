@@ -1,0 +1,1 @@
+{"template":"default","enableI18N":"0","messageCategory":"app","ns":"bagesoft\\models","db":"db","baseClass":"bagesoft\\common\\models\\Base","generateRelations":"all","generateJunctionRelationMode":"model","generateLabelsFromComments":"1","queryNs":"bagesoft\\models","queryBaseClass":"yii\\db\\ActiveQuery","useTablePrefix":"1","generateQuery":"0","useClassConstant":"1"}

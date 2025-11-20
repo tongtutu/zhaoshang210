@@ -1,0 +1,15 @@
+<?php
+
+$this->title = '跟进维护';
+$this->params['breadcrumbs'][] = ['label' => $this->title, 'url' => ['index']];
+$this->params['breadcrumbs'][] = '编辑';
+?>
+<div class="row">
+    <div class="col-lg-12">
+        <?php echo $this->render('_form', [
+    'project' => $project,
+    'source' => $source,
+    'model' => $model,
+]); ?>
+    </div>
+</div>
