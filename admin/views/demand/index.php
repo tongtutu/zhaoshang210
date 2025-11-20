@@ -282,7 +282,7 @@ $(document).ready(function() {
         $('#demandForm')[0].reset(); // 重置表单内容
         $('#demand-worker_uid').val(null).trigger('change');
         $.ajax({
-            url: '<?php echo Url::to(['demand/get-assigned-workers']); ?>',
+            url: '/demand/task-workers', // 新增接口
             type: 'post',
             data: {demandId: demandId},
             success: function(data) {

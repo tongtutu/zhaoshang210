@@ -166,7 +166,28 @@ class DemandController extends \bagesoft\common\controllers\admin\Base
             ]
         );
     }
-
+    /**
+     * 获取已分配的创作者ID（从 demand_user_map 查询）
+     */
+    public function actionTaskWorkers()
+    {   
+        parent::acl('demand/task-workers'); 
+        $request = Yii::$app->request;
+        $demandId = intval($request->post('demandId'));
+        // 从 demand_user_map 查询该需求已分配的创作者（角色类型为 worker）
+        $workerUids = DemandUserMap::find()
+            ->where([
+                'demand_id' => $demandId,
+                'role_type' => System::WORKER // 创作者角色类型，与添加时一致
+            ])
+            ->select('uid')
+            ->column(); // 返回用户ID数组
+        
+        return [
+            'success' => true,
+            'workerUids' => $workerUids
+        ];
+    }
     /**
      * 分配售前技术方案
      *
