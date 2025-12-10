@@ -39,6 +39,7 @@ class InvestController extends \bagesoft\common\controllers\app\Base
         'id' => 'ID',
         'project_name' => '项目名称',
         'manager_name' => '项目经理姓名',
+        'vice_manager_name' => '招商总监姓名',
         'username' => '创建人',
         'company_name' => '公司名称',
         'usci_code' => '统一信用代码',
