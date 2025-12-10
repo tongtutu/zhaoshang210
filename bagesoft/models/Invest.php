@@ -79,25 +79,50 @@ class Invest extends \bagesoft\common\models\Base
                 'manager_uid',
                 'required',
                 'when' => function ($model) {
-                    return $model->hasManager == 1;
+                    return $model->hasManager == 1 || $model->hasManager == 3 ;
                 },
                 'whenClient' => "function (attribute, value) {
-                return $('#hasManager').val() == 1;
+                    const val = $('#hasManager').val();
+                    return val == 1 || val == 3;
             }",
             ],
             [
                 'manager_uid',
-                'vice_manager_uid',
                 'compare',
                 'compareValue' => 1,
                 'operator' => '>',
                 'when' => function ($model) {
+                    return $model->hasManager == 1 || $model->hasManager == 3 ;
+                },
+                'whenClient' => "function (attribute, value) {
+                    const val = $('#hasManager').val();
+                    return val == 1 || val == 3;
+            }",
+                'message' => '项目经理必须选择'
+            ],
+            [
+                'vice_manager_uid',
+                'required',
+                'when' => function ($model) {
                     return $model->hasManager == 1;
                 },
                 'whenClient' => "function (attribute, value) {
-                return $('#hasManager').val() == 1;
+                    return $('#hasManager').val() == 1;
+                }",
+            ],
+            [
+                'vice_manager_uid',
+                'compare',
+                'compareValue' => 1,
+                'operator' => '>',
+                'skipOnEmpty' => true,
+                'when' => function ($model) {
+                    return $model->hasManager == 1 && !empty($model->vice_manager_uid);
+                },
+                'whenClient' => "function (attribute, value) {
+                return $('#hasManager').val() == 1 && value !== '' && value !== '0';
             }",
-                'message' => '项目经理必须选择'
+                'message' => '请选择正确招商总监'
             ],
             [['tags'], 'required', 'message' => '项目标签必须选择', 'on' => ['create', 'update']],
             [['tags'], 'validateTags', 'on' => ['create', 'update']],

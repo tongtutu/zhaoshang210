@@ -150,6 +150,35 @@ $this->params['breadcrumbs'][] = '详情';
                 </div>
             </div>
         </div>
+        <div class="card">
+            <div class="card-header">
+                <h5 class="m-0">招商总监</h5>
+            </div>
+            <div class="card-body">
+                <div class="col-12 table-responsive">
+                    <table class="table table-striped">
+                        <tbody>
+                           
+                            <tr>
+                                <th>姓名</th>
+                                <td><?php echo Html::encode($vice_manager->username); ?></td>
+                            </tr>
+
+                            <tr>
+                                <th>手机</th>
+                                <td><?php echo Html::encode($vice_manager->mobile); ?></td>
+                            </tr>
+
+                            <tr>
+                                <th>状态</th>
+                                <td><?php echo UserConst::STATUS[$vice_manager->state]; ?></td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

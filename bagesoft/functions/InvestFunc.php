@@ -36,7 +36,7 @@ class InvestFunc
      */
     public static function getItemByUidOrMgrId($id, $uid)
     {
-        return Invest::find()->where('id=:id AND (uid=:uid OR manager_uid=:managerUid )', ['id' => $id, 'uid' => $uid, 'managerUid' => $uid])->limit(1)->one();
+        return Invest::find()->where('id=:id AND (uid=:uid OR manager_uid=:managerUid OR vice_manager_uid=:vicemanagerUid )', ['id' => $id, 'uid' => $uid, 'managerUid' => $uid , 'vicemanagerUid' => $uid])->limit(1)->one();
     }
 
     /**

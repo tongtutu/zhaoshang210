@@ -173,12 +173,7 @@ class InvestController extends \bagesoft\common\controllers\app\Base
                 }
             }
         }
-        if ($model->vice_manager_uid > 0) {
-            $viceManager = UserFunc::getUserById($model->vice_manager_uid);
-            if ($viceManager) {
-                $model->vice_manager_name = $viceManager->username;
-            }
-        }
+
         $model->loadDefaultValues();
 
         $model->tags = $model->tags ?: [];
@@ -249,6 +244,7 @@ class InvestController extends \bagesoft\common\controllers\app\Base
                 'maintains' => MaintainFunc::getMaintianListById($model->id, System::SOURCE_INVEST),
                 'attachFiles' => UploadFunc::getlist(System::UPLOAD_SOURCE_INVEST, $model->id),
                 'manager' => UserFunc::getUserById($model->manager_uid),
+                'vice_manager' => UserFunc::getUserById($model->vice_manager_uid),
             ]
         );
     }

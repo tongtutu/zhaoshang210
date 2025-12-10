@@ -178,6 +178,7 @@ class InvestController extends \bagesoft\common\controllers\admin\Base
                 'maintains' => MaintainFunc::getMaintianListById($model->id, System::SOURCE_INVEST),
                 'attachFiles' => UploadFunc::getlist(System::UPLOAD_SOURCE_INVEST, $model->id),
                 'manager' => UserFunc::getUserById($model->manager_uid),
+                'vice_manager' => UserFunc::getUserById($model->vice_manager_uid),
             ]
         );
     }
