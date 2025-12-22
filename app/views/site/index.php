@@ -67,7 +67,7 @@ $user = $this->context->user;
                             <td>
                                 <?php if ($demandWorksWaitAcceptNum > 0): ?>
 
-                                    <a href="<?php echo Url::toRoute(['demand/index', 'state' => ProjectConst::DEMAND_STATUS_WAIT_AUDIT]); ?>"
+                                    <a href="<?php echo Url::toRoute(['demand/index', 'state' => ProjectConst::DEMAND_WORKS_AUDIT_WAIT]); ?>"
                                         class="badge badge-danger"><?php echo $demandWorksWaitAcceptNum; ?></a>
                                 <?php else: ?>
                                     <?php echo $demandWorksWaitAcceptNum; ?>

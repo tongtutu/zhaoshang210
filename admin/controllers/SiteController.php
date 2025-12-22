@@ -14,6 +14,7 @@ use bagesoft\models\Invest;
 use bagesoft\models\Customer;
 use bagesoft\models\Maintain;
 use bagesoft\models\DemandWorks;
+use bagesoft\models\DemandUserMap;
 use bagesoft\constant\ProjectConst;
 
 class SiteController extends \bagesoft\common\controllers\admin\Base
@@ -33,7 +34,7 @@ class SiteController extends \bagesoft\common\controllers\admin\Base
 
         $maintainWaitAuditNum = Maintain::find()->where('partner_uid=:partnerUid AND state=:state', ['partnerUid' => $uid, 'state' => ProjectConst::MAINTAIN_STATUS_WAIT])->count();//待审核维护信息数
 
-        $demandWaitWorkerNum = Demand::find()->where('worker_uid=0')->count();//分配创作人
+        $demandWaitWorkerNum = Demand::find()->alias('d')->leftJoin(DemandUserMap::tableName().'dum','d.id = dum.demand_id AND dum.role_type = :roleType',['roleType'=>System::WORKER])->where('dum.uid IS NULL')->count();//分配创作人
 
         $maintainNum = Maintain::find()->count();//跟进维护信息数
 

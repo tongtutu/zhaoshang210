@@ -21,6 +21,8 @@ use bagesoft\constant\UserConst;
 use bagesoft\models\DemandWorks;
 use bagesoft\constant\ProjectConst;
 use bagesoft\models\CustomerUserMap;
+use bagesoft\models\DemandUserMap;
+use bagesoft\models\DemandTask;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
@@ -47,8 +49,8 @@ class SiteController extends \bagesoft\common\controllers\app\Base
 
         $workerNum = DemandWorks::find()->where('worker_uid=:workerUid', ['workerUid' => $uid])->count();//分配创作信息数
 
-        $workerWaitAcceptNum = Demand::find()->where('worker_uid=:workerUid AND worker_accept=:workerAccept', ['workerUid' => $uid, 'workerAccept' => ProjectConst::WORKS_ACCEPT_WAIT])->count();//待审创作数
-
+        $workerWaitAcceptNum = DemandTask::find()->alias('dt')->innerJoin(DemandUserMap::tableName().'dum','dt.demand_id = dum.demand_id AND dt.worker_uid = dum.uid')->where(['dt.worker_uid'=>$uid,  'dt.worker_Accept' => ProjectConst::WORKS_ACCEPT_WAIT])->count();//待审创作数
+        
         $btMgrNum = CustomerUserMap::find()->where('uid=:uid AND role_type=:roleType', ['uid' => $uid, 'roleType' => System::BT_MANAGER])->count();
 
 
