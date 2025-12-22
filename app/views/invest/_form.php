@@ -98,14 +98,14 @@ AppAsset::addScript($this, Yii::$app->params['res.url'] . '/static/plugins/distp
                             <?php endif; ?>
                             <?php if ($hasManager == 1): ?>
                                 <div class="col-lg-6">
-
+                                    
                                     <?php echo $form->field($model, 'vice_manager_uid')->widget(Select2::className(), [
                                         'data' => UserFunc::getViceManagers($this->context->user->id),
-                                        'options' => ['placeholder' => '招商总监', 'disabled' => !$model->isNewRecord && $model->vice_manager_uid > 0],
+                                        'options' => ['placeholder' => '招商管理岗', 'disabled' => !$model->isNewRecord && $model->vice_manager_uid > 0],
                                         'pluginOptions' => [
                                             'allowClear' => true,
                                         ],
-                                    ])->label($model->getAttributeLabel('vice_manager_uid') . ' <span class="required-star">*</span>'); ?>
+                                    ])->label($model->getAttributeLabel('vice_manager_uid')); ?>
                                 </div>
                             <?php endif; ?>
                         </div>

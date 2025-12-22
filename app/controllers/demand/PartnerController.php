@@ -15,6 +15,7 @@ use bagesoft\constant\ProjectConst;
 use bagesoft\constant\System;
 use bagesoft\functions\DemandFunc;
 use bagesoft\models\DemandWorks;
+use bagesoft\models\DemandTask;
 use Exception;
 use Yii;
 
@@ -35,15 +36,15 @@ class PartnerController extends \bagesoft\common\controllers\app\Base
             $model = DemandFunc::getItemByUserMap($id, $uid);
             if (false == $model) {
                 throw new Exception('创作记录不存在');
-            } elseif ($model->demand->state == ProjectConst::DEMAND_STATUS_SUCCESS) {
+            } elseif ($model->demandTask->state == ProjectConst::DEMAND_STATUS_SUCCESS) {
                 throw new Exception('该需求已经完成，无法上传作品');
             }
-            $getWaitWorks = DemandFunc::getWaitWorks($model->demand->id);
+            $getWaitWorks = DemandFunc::getWaitWorks($model->demand->id,(int) $this->session['uid']);
             if ($getWaitWorks > 0) {
                 throw new Exception('还有创作记录未审核,请等待审核结果');
             }
             //提交次数
-            $produceNum = (int) DemandFunc::produceNum($model->demand->produce_num);
+            $produceNum = (int) DemandFunc::produceNum($model->demandTask->produce_num);
             $demandWorks = new DemandWorks();
             if (Yii::$app->request->isAjax && $demandWorks->load(Yii::$app->request->post())) {
                 $demandWorks->demand_id = $model->id;
@@ -56,12 +57,12 @@ class PartnerController extends \bagesoft\common\controllers\app\Base
                 $demandWorks->state = ProjectConst::DEMAND_WORKS_AUDIT_WAIT;
                 $demandWorks->produce_num = $produceNum;
                 if ($demandWorks->validate() && $demandWorks->save()) {
-                    $model->demand->state = ProjectConst::DEMAND_STATUS_WAIT_AUDIT;
-                    $model->demand->produce_num = $produceNum;
-                    if ($model->demand->worker_first_at == 0) {
-                        $model->demand->worker_first_at = time();
+                    $model->demandTask->state = ProjectConst::DEMAND_STATUS_WAIT_AUDIT;
+                    $model->demandTask->produce_num = $produceNum;
+                    if ($model->demandTask->worker_first_at == 0) {
+                        $model->demandTask->worker_first_at = time();
                     }
-                    $model->demand->save();
+                    $model->demandTask->save();
                     //发送消息
                     (new Dccomm([
                         'taskName' => '作品上传',
@@ -100,18 +101,17 @@ class PartnerController extends \bagesoft\common\controllers\app\Base
             if (false == $model) {
                 throw new Exception('记录不存在');
             }
-            $model->demand->worker_accept = $status;
-
+            $model->demandTask->worker_accept = $status;
             if ($status == ProjectConst::WORKS_ACCEPT_APPROVE) {
                 $action = MessageQueueConst::DEMAND_ACCEPT;
                 $taskName = '创作接受';
-                $model->demand->state = ProjectConst::DEMAND_STATUS_WAIT_WORKS;
+                $model->demandTask->state = ProjectConst::DEMAND_STATUS_WAIT_WORKS;
             } else {
                 $action = MessageQueueConst::DEMAND_REJECT;
-                $model->demand->state = ProjectConst::DEMAND_STATUS_WAIT_PARTNER;
+                $model->demandTask->state = ProjectConst::DEMAND_STATUS_WAIT_PARTNER;
                 $taskName = '创作拒绝';
             }
-            $model->demand->save();
+            $model->demandTask->save();
             //发送消息
             (new Dccomm([
                 'taskName' => $taskName,

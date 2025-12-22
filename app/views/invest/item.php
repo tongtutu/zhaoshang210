@@ -163,7 +163,7 @@ $this->params['breadcrumbs'][] = '详情';
         </div>
         <div class="card">
             <div class="card-header">
-                <h5 class="m-0">招商总监</h5>
+                <h5 class="m-0">招商管理岗</h5>
             </div>
             <div class="card-body">
                 <div class="col-12 table-responsive">

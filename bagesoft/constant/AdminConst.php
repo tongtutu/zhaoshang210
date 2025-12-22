@@ -14,6 +14,7 @@ class AdminConst
     const ROLE_SYSTEM = 1; //系统
     const ROLE_SUPER = 3; //超级管理
     const ROLE_MANAGER = 5; //项目经理
+    const VICE_MANAGER_GID = 7; //招商总监
 
     const SUPER_UIDS = [2]; //超级管理员uid
 
