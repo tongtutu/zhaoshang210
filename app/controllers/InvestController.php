@@ -25,6 +25,7 @@ use bagesoft\functions\ProjectFunc;
 use bagesoft\functions\MaintainFunc;
 use bagesoft\constant\UserConst;
 use bagesoft\models\InvestUserMap;
+use bagesoft\models\InvestDraft;
 use yii\web\NotFoundHttpException;
 use bagesoft\constant\ProjectConst;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -152,7 +153,55 @@ class InvestController extends \bagesoft\common\controllers\app\Base
             parent::renderErrorJson($th->getMessage());
         }
     }
-
+    /**
+     * 草稿
+     */
+    public function actionSaveDraft()
+    {
+        parent::acl();
+        $model = new Invest();
+        $model->load($request->post());
+        // 1. 查找当前用户+当前项目的草稿（新增则按用户，编辑则按项目ID）
+        InvestDraft::deleteAll(
+            'uid' = $this->session['uid']
+            );
+        // 2. 保存表单数据（序列化存储）
+        $draft = new InvestDraft();
+        $draft->uid = $this->session['uid'];
+        $draft->username = $this->session['username'];
+        $draft->draft_data = json_encode($request->post('Invest', []), JSON_UNESCAPED_UNICODE); // 序列化表单数据
+        $draft->updated_at = time();
+        if ($draft->save()) {
+            return ['code' => 200, 'msg' => '草稿保存成功'];
+        } else {
+            // 获取模型验证错误信息
+            $errorMsg = Utils::getModelErrors($draft) ?: '草稿数据验证失败';
+            throw new \Exception($errorMsg);
+        }
+   
+    }
+    /**
+     * 获取草稿
+     */
+    public function actionGetLastDraft()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $draft = InvestDraft::find()
+            ->where([
+                'user_id' => Yii::$app->user->id,
+                'invest_id' => $id
+            ])
+            ->orderBy(['updated_at' => SORT_DESC])
+            ->one();
+        if ($draft) {
+            return [
+                'code' => 200,
+                'data' => json_decode($draft->draft_data, true)
+            ];
+        } else {
+            return ['code' => 404, 'msg' => '暂无草稿'];
+        }
+    }
     /**
      * 录入
      */

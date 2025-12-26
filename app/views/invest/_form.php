@@ -18,6 +18,8 @@ $inputAddon = '';
 if ($model->isNewRecord) {
     $inputAddon = ' checkValue';
 }
+// 定义编辑状态标识（核心：新增显示、编辑隐藏）
+$isEdit = !$model->isNewRecord;
 AppAsset::addScript($this, Yii::$app->params['res.url'] . '/static/plugins/distpicker/distpicker.js');
 ?>
 
@@ -29,6 +31,20 @@ AppAsset::addScript($this, Yii::$app->params['res.url'] . '/static/plugins/distp
 ); ?>
 
 <div class="card">
+    <div class="card-header d-flex justify-content-end align-items-center" <?= $isEdit ? 'style="display:none !important;"' : '' ?>>
+        <div class="draft-btn-group">
+            <!-- 保存到草稿箱按钮 -->
+            <?= Html::button('<i class="fa fa-save"></i> 保存到草稿箱', [
+                'class' => 'btn btn-secondary btn-sm me-2 draft-save',
+                'id' => 'draft-save-btn'
+            ]) ?>
+            <!-- 获取最后一次草稿按钮 -->
+            <?= Html::button('<i class="fa fa-history"></i> 获取最后一次草稿', [
+                'class' => 'btn btn-info btn-sm me-2 draft-get',
+                'id' => 'draft-get-btn'
+            ]) ?>
+        </div>
+    </div>
     <div class="card-body">
         <div class="tab-content">
             <div class="tab-pane active" id="base">
@@ -242,8 +258,75 @@ AppAsset::addScript($this, Yii::$app->params['res.url'] . '/static/plugins/distp
 
 <?php
 $checkUrl = Url::toRoute(["value-check"]);
+$draftSaveUrl = Url::to(['invest/save-draft']); // 后端保存草稿接口
+$draftGetUrl = Url::to(['invest/get-last-draft']); // 后端获取草稿接口
 $this->registerJs(
     <<<JS
+$(document).ready(function() {
+    // 1. 保存到草稿箱逻辑
+    $('#draft-save-btn').click(function() {
+        // 禁用按钮防止重复提交
+        $(this).attr('disabled', true).text('保存中...');
+        
+        // 获取表单所有数据
+        var formData = $('#invest-form').serialize();
+        
+        $.ajax({
+            url: '{$draftSaveUrl}',
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(res) {
+                if (res.code === 200) {
+                    alert('草稿保存成功！');
+                } else {
+                    alert('草稿保存失败：' + res.msg);
+                }
+                // 恢复按钮状态
+                $('#draft-save-btn').attr('disabled', false).text('<i class="fa fa-save"></i> 保存到草稿箱');
+            },
+            error: function() {
+                alert('网络错误，草稿保存失败！');
+                $('#draft-save-btn').attr('disabled', false).text('<i class="fa fa-save"></i> 保存到草稿箱');
+            }
+        });
+    });
+
+    // 2. 获取最后一次草稿逻辑
+    $('#draft-get-btn').click(function() {
+        $(this).attr('disabled', true).text('加载中...');
+        
+        $.ajax({
+            url: '{$draftGetUrl}',
+            type: 'GET',
+            data: "",
+            dataType: 'json',
+            success: function(res) {
+                if (res.code === 200 && res.data) {
+                    // 填充草稿数据到表单
+                    var draft = res.data;
+                    for (var key in draft) {
+                        if ($('#invest-' + key).length) {
+                            // 普通输入框/下拉框填充
+                            $('#invest-' + key).val(draft[key]);
+                        } else if ($('textarea[name="Invest[' + key + ']"]').length) {
+                            // 文本域填充
+                            $('textarea[name="Invest[' + key + ']"]').val(draft[key]);
+                        }
+                    }
+                    alert('草稿加载成功！');
+                } else {
+                    alert('暂无草稿数据');
+                }
+                $('#draft-get-btn').attr('disabled', false).text('<i class="fa fa-history"></i> 获取最后一次草稿');
+            },
+            error: function() {
+                alert('网络错误，加载草稿失败！');
+                $('#draft-get-btn').attr('disabled', false).text('<i class="fa fa-history"></i> 获取最后一次草稿');
+            }
+        });
+    });
+});    
 $("#distpicker").distpicker();
 $('.checkValue').on('blur', function() {
     var inputValue = $(this).val();
