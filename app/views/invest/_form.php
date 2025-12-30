@@ -306,14 +306,54 @@ $(document).ready(function() {
                 if (res.code === 200 && res.data) {
                     // 填充草稿数据到表单
                     var draft = res.data;
+                    if (draft.tags && typeof draft.tags === 'string') {
+                        // 步骤1：按制表符/空格分割成单个标签项（兼容\t、空格、多个空格）
+                        var tagItems = draft.tags.split(/[\t\s]+/).filter(item => item);
+                        // 步骤2：遍历每个标签项，提取ID
+                        var tagIds = [];
+                        tagItems.forEach(function(item) {
+                            // 按逗号分割，取第一个值（ID）并转数字
+                            var tagId = item.split(',')[0];
+                            if (tagId && !isNaN(tagId)) {
+                                tagIds.push(tagId);
+                            }
+                        });
+                        // 替换原tags为纯ID数组
+                        draft.tags = tagIds;
+                    }
                     for (var key in draft) {
                         if ($('#invest-' + key).length) {
                             // 普通输入框/下拉框填充
                             $('#invest-' + key).val(draft[key]);
+                            setTimeout(function() {
+                                $('#invest-' + key).val(draft[key]);
+                                // 触发下拉框change事件，更新联动（如有）
+                                $('#invest-' + key).trigger('change');
+                            }, 1000);
                         } else if ($('textarea[name="Invest[' + key + ']"]').length) {
                             // 文本域填充
                             $('textarea[name="Invest[' + key + ']"]').val(draft[key]);
+                        }else if (key === 'content' && UE.getEditor('invest-content')) {
+                            var ue = UE.getEditor('invest-content');
+                                ue.ready(function() {
+                                ue.setContent(draft[key]);
+                            });
+                        }else if (key === 'tags' && Array.isArray(draft[key])) {
+                            // 清空所有标签复选框的勾选状态
+                            $('input[name="Invest[tags][]"]').prop('checked', false);
+                            // 批量勾选匹配的标签（value为标签ID）
+                            draft[key].forEach(function(tagId) {
+                                $('input[name="Invest[tags][]"][value="' + tagId + '"]').prop('checked', true);
+                            });
                         }
+                    }
+                    if (draft.manager_uid && $('#invest-manager_uid').length) {
+                        $('#invest-manager_uid').val(draft.manager_uid);
+                        $('#invest-manager_uid').trigger('change');
+                    }
+                    if (draft.vice_manager_uid && $('#invest-vice_manager_uid').length) {
+                        $('#invest-vice_manager_uid').val(draft.vice_manager_uid);
+                        $('#invest-vice_manager_uid').trigger('change');
                     }
                     alert('草稿加载成功！');
                 } else {

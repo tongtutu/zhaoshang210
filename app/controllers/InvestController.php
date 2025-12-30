@@ -162,14 +162,35 @@ class InvestController extends \bagesoft\common\controllers\app\Base
 
         $request = Yii::$app->request->post();
         $uid = $this->session['uid'];
-        $model = new InvestDraft();
-        var_dump($model->load($request));
-        if ($model->load($request) && $model->validate()) {
+        $investData = $request['Invest'] ?? [];
+        $model = new Invest();
+        if ($model->load($request)) {
             InvestDraft::deleteAll(['uid' => $uid]);
-            $model->uid = $uid;
-            $model->username = $this->session['username'];
-            //var_dump($model);
-            if ($model->save(false)) { // false 跳过重复验证（已validate）
+            $draft = new InvestDraft();
+            $draft->uid = $uid;
+            $draft->username = $this->session['username'];
+            $draft->project_name = $investData['project_name'] ?? '';
+            $draft->project_assess = $investData['project_assess'] ?? '';
+            $draft->company_name = $investData['company_name'] ?? '';
+            $draft->usci_code = $investData['usci_code'] ?? '';
+            $draft->tags = $investData['tags'] ?? '';
+            $draft->channel_id = $investData['channel_id'] ?? 0;
+            $draft->channel_name = $investData['channel_name'] ?? '';
+            $draft->contact_name = $investData['contact_name'] ?? '';
+            $draft->contact_phone = $investData['contact_phone'] ?? '';
+            $draft->province = $investData['province'] ?? '';
+            $draft->city = $investData['city'] ?? '';
+            $draft->area = $investData['area'] ?? '';
+            $draft->address = $investData['address'] ?? '';
+            $draft->content = $investData['content'] ?? '';
+            $draft->manager_uid = $investData['manager_uid'] ?? 0;
+            $draft->manager_name = $investData['manager_name'] ?? '';
+            $draft->vice_manager_uid = $investData['vice_manager_uid'] ?? 0;
+            $draft->vice_manager_name = $investData['vice_manager_name'] ?? '';
+            $draft->attach_file = $investData['attach_file'] ?? '';
+            $draft->scenario = 'draft';
+
+            if ($draft->save(false)) { // false 跳过重复验证（已validate）
                 Yii::$app->session->setFlash('publishSuccess', '发布成功');
                 return $this->asJson(['code' => 200, 'msg' => '草稿保存成功']);
             } else {
@@ -188,17 +209,36 @@ class InvestController extends \bagesoft\common\controllers\app\Base
     public function actionGetLastDraft()
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $request = Yii::$app->request;
         $draft = InvestDraft::find()
-            ->where([
-                'user_id' => Yii::$app->user->id,
-                'invest_id' => $id
-            ])
-            ->orderBy(['updated_at' => SORT_DESC])
+            ->where(['uid' => $this->session['uid']])
             ->one();
+        // 2. 构造invest格式返回（前端可直接用invest[]接收）
         if ($draft) {
             return [
                 'code' => 200,
-                'data' => json_decode($draft->draft_data, true)
+                'data' => [
+                    // 保持invest键名，前端无需修改
+                        'id' => $draft->id,
+                        'project_name' => $draft->project_name,
+                        'company_name' => $draft->company_name,
+                        'usci_code' => $draft->usci_code,
+                        'tags' => $draft->tags,
+                        'channel_id' => $draft->channel_id,
+                        'channel_name' => $draft->channel_name,
+                        'contact_name' => $draft->contact_name,
+                        'contact_phone' => $draft->contact_phone,
+                        'province' => $draft->province,
+                        'city' => $draft->city,
+                        'area' => $draft->area,
+                        'address' => $draft->address,
+                        'content' => $draft->content,
+                        'manager_uid' => $draft->manager_uid,
+                        'manager_name' => $draft->manager_name,
+                        'vice_manager_uid' => $draft->vice_manager_uid,
+                        'vice_manager_name' => $draft->vice_manager_name,
+                        'project_assess' =>$draft->project_assess,
+                    ]
             ];
         } else {
             return ['code' => 404, 'msg' => '暂无草稿'];
@@ -220,6 +260,7 @@ class InvestController extends \bagesoft\common\controllers\app\Base
             $model->hasManager = $hasManager;
             if ($model->validate()) {
                 if ($model->save()) {
+                    InvestDraft::deleteAll(['uid' => $this->session['uid']]);
                     Yii::$app->session->setFlash('publishSuccess', '发布成功');
                     return $this->redirect(['index']);
                 }

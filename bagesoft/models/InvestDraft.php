@@ -65,9 +65,9 @@ class InvestDraft extends \bagesoft\common\models\Base
     {
         return [
             // 基础字段类型校验（仅保留类型，移除强制必填）
-            [['uid', 'project_id', 'project_assess', 'manager_uid', 'vice_manager_uid', 'bt_manager_uid', 'channel_id', 'created_at'], 'integer'],
+            [['uid', 'project_assess', 'manager_uid', 'vice_manager_uid', 'channel_id', 'created_at'], 'integer'],
             [['content'], 'string'],
-            [['username', 'manager_name','vice_manager_name', 'bt_manager_name', 'usci_code', 'province', 'city', 'area'], 'string', 'max' => 50],
+            [['username', 'manager_name','vice_manager_name', 'usci_code', 'province', 'city', 'area'], 'string', 'max' => 50],
             [['project_name', 'company_name'], 'string', 'max' => 100],
             [['channel_name', 'attach_file'], 'string', 'max' => 255],
             [['contact_name'], 'string', 'max' => 20],
@@ -124,7 +124,6 @@ class InvestDraft extends \bagesoft\common\models\Base
      * @param [type] $insert
      * @param [type] $changedAttributes
      */
-    
 
     /**
      * 存前操作
@@ -146,7 +145,7 @@ class InvestDraft extends \bagesoft\common\models\Base
             $this->vice_manager_name = $vice_user->username;
         }
         $this->attach_file = str_replace(' ', '', $this->attach_file);
-        if (in_array($this->scenario, ['create', 'update'])) {
+        if (in_array($this->scenario, ['draft'])) {
             $this->tags = TagsFunc::format($this->tags);
         }
         return true;
