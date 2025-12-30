@@ -159,26 +159,28 @@ class InvestController extends \bagesoft\common\controllers\app\Base
     public function actionSaveDraft()
     {
         parent::acl();
-        $model = new Invest();
-        $model->load($request->post());
-        // 1. 查找当前用户+当前项目的草稿（新增则按用户，编辑则按项目ID）
-        InvestDraft::deleteAll(
-            'uid' = $this->session['uid']
-            );
-        // 2. 保存表单数据（序列化存储）
-        $draft = new InvestDraft();
-        $draft->uid = $this->session['uid'];
-        $draft->username = $this->session['username'];
-        $draft->draft_data = json_encode($request->post('Invest', []), JSON_UNESCAPED_UNICODE); // 序列化表单数据
-        $draft->updated_at = time();
-        if ($draft->save()) {
-            return ['code' => 200, 'msg' => '草稿保存成功'];
-        } else {
-            // 获取模型验证错误信息
-            $errorMsg = Utils::getModelErrors($draft) ?: '草稿数据验证失败';
-            throw new \Exception($errorMsg);
+
+        $request = Yii::$app->request->post();
+        $uid = $this->session['uid'];
+        $model = new InvestDraft();
+        var_dump($model->load($request));
+        if ($model->load($request) && $model->validate()) {
+            InvestDraft::deleteAll(['uid' => $uid]);
+            $model->uid = $uid;
+            $model->username = $this->session['username'];
+            //var_dump($model);
+            if ($model->save(false)) { // false 跳过重复验证（已validate）
+                Yii::$app->session->setFlash('publishSuccess', '发布成功');
+                return $this->asJson(['code' => 200, 'msg' => '草稿保存成功']);
+            } else {
+                return $this->asJson([
+                    'code' => -2,
+                    'msg' => '草稿保存失败：' . implode(';', $model->getFirstErrors()),
+                    'data' => null
+                ]);
+            }
         }
-   
+        
     }
     /**
      * 获取草稿

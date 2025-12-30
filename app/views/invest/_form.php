@@ -25,7 +25,8 @@ AppAsset::addScript($this, Yii::$app->params['res.url'] . '/static/plugins/distp
 
 <!-- Nav tabs -->
 <?php $form = ActiveForm::begin(
-    [
+    [  
+        'id' => 'invest-form', // 新增：指定表单ID，匹配JS中的选择器
         'options' => ['enctype' => 'multipart/form-data'],
     ]
 ); ?>
@@ -283,11 +284,11 @@ $(document).ready(function() {
                     alert('草稿保存失败：' + res.msg);
                 }
                 // 恢复按钮状态
-                $('#draft-save-btn').attr('disabled', false).text('<i class="fa fa-save"></i> 保存到草稿箱');
+                $('#draft-save-btn').attr('disabled', false).html('<i class="fa fa-save"></i> 保存到草稿箱');
             },
             error: function() {
                 alert('网络错误，草稿保存失败！');
-                $('#draft-save-btn').attr('disabled', false).text('<i class="fa fa-save"></i> 保存到草稿箱');
+                $('#draft-save-btn').attr('disabled', false).html('<i class="fa fa-save"></i> 保存到草稿箱');
             }
         });
     });
@@ -318,11 +319,11 @@ $(document).ready(function() {
                 } else {
                     alert('暂无草稿数据');
                 }
-                $('#draft-get-btn').attr('disabled', false).text('<i class="fa fa-history"></i> 获取最后一次草稿');
+                $('#draft-get-btn').attr('disabled', false).html('<i class="fa fa-history"></i> 获取最后一次草稿');
             },
             error: function() {
                 alert('网络错误，加载草稿失败！');
-                $('#draft-get-btn').attr('disabled', false).text('<i class="fa fa-history"></i> 获取最后一次草稿');
+                $('#draft-get-btn').attr('disabled', false).html('<i class="fa fa-history"></i> 获取最后一次草稿');
             }
         });
     });

@@ -50,14 +50,12 @@ use bagesoft\models\MaintainUserMap;
  */
 class InvestDraft extends \bagesoft\common\models\Base
 {
-    public $hasManager;
-
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return '{{%invest}}';
+        return '{{%invest_draft}}';
     }
 
     /**
@@ -66,75 +64,19 @@ class InvestDraft extends \bagesoft\common\models\Base
     public function rules()
     {
         return [
-            [['uid', 'partner_uid', 'project_id', 'project_assess', 'manager_uid', 'vice_manager_uid','bt_manager_uid', 'channel_id', 'views', 'updated_at', 'created_at'], 'integer'],
-            [['project_name', 'company_name', 'usci_code', 'contact_name', 'contact_phone', 'province', 'address', 'attach_file'], 'required'],
+            // 基础字段类型校验（仅保留类型，移除强制必填）
+            [['uid', 'project_id', 'project_assess', 'manager_uid', 'vice_manager_uid', 'bt_manager_uid', 'channel_id', 'created_at'], 'integer'],
             [['content'], 'string'],
-            [['username', 'partner_name', 'manager_name','vice_manager_name', 'bt_manager_name', 'usci_code', 'province', 'city', 'area'], 'string', 'max' => 50],
+            [['username', 'manager_name','vice_manager_name', 'bt_manager_name', 'usci_code', 'province', 'city', 'area'], 'string', 'max' => 50],
             [['project_name', 'company_name'], 'string', 'max' => 100],
             [['channel_name', 'attach_file'], 'string', 'max' => 255],
             [['contact_name'], 'string', 'max' => 20],
             [['contact_phone'], 'string', 'max' => 11],
             [['address'], 'string', 'max' => 200],
-            [
-                'manager_uid',
-                'required',
-                'when' => function ($model) {
-                    return $model->hasManager == 1 || $model->hasManager == 3 ;
-                },
-                'whenClient' => "function (attribute, value) {
-                    const val = $('#hasManager').val();
-                    return val == 1 || val == 3;
-            }",
-            ],
-            [
-                'manager_uid',
-                'compare',
-                'compareValue' => 1,
-                'operator' => '>',
-                'when' => function ($model) {
-                    return $model->hasManager == 1 || $model->hasManager == 3 ;
-                },
-                'whenClient' => "function (attribute, value) {
-                    const val = $('#hasManager').val();
-                    return val == 1 || val == 3;
-            }",
-                'message' => '项目经理必须选择'
-            ],
-            [
-                'vice_manager_uid',
-                'required',
-                'when' => function ($model) {
-                    return $model->hasManager == 1;
-                },
-                'whenClient' => "function (attribute, value) {
-                    return $('#hasManager').val() == 1;
-                }",
-            ],
-            [
-                'vice_manager_uid',
-                'compare',
-                'compareValue' => 1,
-                'operator' => '>',
-                'skipOnEmpty' => true,
-                'when' => function ($model) {
-                    return $model->hasManager == 1 && !empty($model->vice_manager_uid);
-                },
-                'whenClient' => "function (attribute, value) {
-                return $('#hasManager').val() == 1 && value !== '' && value !== '0';
-            }",
-                'message' => '请选择正确招商总监'
-            ],
-            [['tags'], 'required', 'message' => '项目标签必须选择', 'on' => ['create', 'update']],
-            [['tags'], 'validateTags', 'on' => ['create', 'update']],
+            [['tags'], 'string'],
         ];
     }
 
-    public function validateTags($attribute, $params)
-    {
-        if (empty($this->tags) || !is_array($this->tags) || count($this->tags) < 1) {
-            $this->addError($attribute, '至少要选择1个项目标签');
-        }
-    }
 
     /**
      * {@inheritdoc}
@@ -145,8 +87,6 @@ class InvestDraft extends \bagesoft\common\models\Base
             'id' => '主键',
             'uid' => '用户UID',
             'username' => '用户名',
-            'partner_uid' => '伙伴UID(未启用)',
-            'partner_name' => '伙伴名称(未启用)',
             'project_id' => '所属项目',
             'project_name' => '项目名称',
             'project_assess' => '考核项目',
@@ -169,11 +109,12 @@ class InvestDraft extends \bagesoft\common\models\Base
             'address' => '联系地址',
             'content' => '项目介绍',
             //'steps' => '项目阶段',
-            'views' => '查看次数',
+            //'views' => '查看次数',
             //'is_demand' => '需求提交',
             'attach_file' => '附件上传',
             //'deleted' => '删除状态',
-            'updated_at' => '更新时间',
+            //'maintain_at' => '最后跟进',
+            //'updated_at' => '更新时间',
             'created_at' => '入库时间',
         ];
     }
@@ -183,34 +124,7 @@ class InvestDraft extends \bagesoft\common\models\Base
      * @param [type] $insert
      * @param [type] $changedAttributes
      */
-    public function afterSave($insert, $changedAttributes)
-    {
-        parent::afterSave($insert, $changedAttributes);
-        if ($insert) {
-            //发布者
-            $source = new InvestUserMap();
-            $source->uid = intval($this->uid);
-            $source->project_id = $this->id;
-            $source->role_type = System::OWNER;
-            $source->save();
-
-            //项目经理
-            $target = new InvestUserMap();
-            $target->uid = intval($this->manager_uid);
-            $target->project_id = $this->id;
-            $target->role_type = System::MANAGER;
-            $target->save();
-            
-            //项目经理
-            $target = new InvestUserMap();
-            $target->uid = intval($this->vice_manager_uid);
-            $target->project_id = $this->id;
-            $target->role_type = System::MANAGER;
-            $target->save();
-        }
-        //关联项目
-        UploadFunc::relateProject($this->attach_file, $this->id);
-    }
+    
 
     /**
      * 存前操作
