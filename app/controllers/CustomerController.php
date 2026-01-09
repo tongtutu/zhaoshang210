@@ -19,6 +19,7 @@ use bagesoft\functions\VisitFunc;
 use bagesoft\constant\System;
 use bagesoft\functions\UploadFunc;
 use bagesoft\models\Customer;
+use bagesoft\models\CustomerDraft;
 use bagesoft\functions\ProjectFunc;
 use yii\bootstrap5\ActiveForm;
 use bagesoft\functions\CustomerFunc;
@@ -159,7 +160,95 @@ class CustomerController extends \bagesoft\common\controllers\app\Base
             parent::renderSuccessJson();
         }
     }
+    /**
+     * 草稿
+     */
+    public function actionSaveDraft()
+    {
+        $request = Yii::$app->request->post();
+        $uid = $this->session['uid'];
+        $customerData = $request['Customer'] ?? [];
+        //var_dump($investData);
+        $model = new Customer();
+        if ($model->load($request)) {
+            CustomerDraft::deleteAll(['uid' => $uid]);
+            $draft = new CustomerDraft();
+            $draft->uid = $uid;
+            $draft->username = $this->session['username'];
+            $draft->realname = $customerData['realname'] ?? '';
+            $draft->sex = $customerData['sex'] ?? '';
+            $draft->job_title = $customerData['job_title'] ?? '';
+            $draft->stars = $customerData['stars'] ?? '';
+            $draft->phone = $customerData['phone'] ?? '';
+            $draft->phone1 = $customerData['phone1'] ?? '';
+            $draft->project_name = $customerData['project_name'] ?? '';
+            $draft->company_name = $customerData['company_name'] ?? '';
+            $draft->usci_code = $customerData['usci_code'] ?? '';
+            $draft->province = $customerData['province'] ?? '';
+            $draft->city = $customerData['city'] ?? '';
+            $draft->area = $customerData['area'] ?? '';
+            $draft->address = $customerData['address'] ?? '';
+            $draft->content = $customerData['content'] ?? '';
+            $draft->partner_uid = $customerData['partner_uid'] ?? 0;
+            $draft->expand_type = $customerData['expand_type'] ?? '';
+            $draft->attach_file = $customerData['attach_file'] ?? '';
+            $draft->tags = $customerData['tags'] ?? '';
+            $draft->scenario = 'draft';
 
+            if ($draft->save(false)) { // false 跳过重复验证（已validate）
+                Yii::$app->session->setFlash('publishSuccess', '发布成功');
+                return $this->asJson(['code' => 200, 'msg' => '草稿保存成功']);
+            } else {
+                return $this->asJson([
+                    'code' => -2,
+                    'msg' => '草稿保存失败：' . implode(';', $model->getFirstErrors()),
+                    'data' => null
+                ]);
+            }
+        }
+        
+    }
+    /**
+     * 获取草稿
+     */
+    public function actionGetLastDraft()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $request = Yii::$app->request;
+        $draft = CustomerDraft::find()
+            ->where(['uid' => $this->session['uid']])
+            ->one();
+        // 2. 构造invest格式返回（前端可直接用invest[]接收）
+        if ($draft) {
+            return [
+                'code' => 200,
+                'data' => [
+                    // 保持invest键名，前端无需修改
+                        'id' => $draft->id,
+                        'realname' => $draft->realname,
+                        'sex' => $draft->sex,
+                        'job_title' => $draft->job_title,
+                        'tags' => $draft->tags,
+                        'stars' => $draft->stars,
+                        'phone' => $draft->phone,
+                        'phone1' => $draft->phone1,
+                        'project_name' => $draft->project_name,
+                        'company_name' => $draft->company_name,
+                        'usci_code' => $draft->usci_code,
+                        'province' => $draft->province,
+                        'city' => $draft->city,
+                        'area' => $draft->area,
+                        'address' => $draft->address,
+                        'content' => $draft->content,
+                        'partner_uid' => $draft->partner_uid,
+                        'expand_type' => $draft->expand_type,
+                        'attach_file' => $draft->attach_file,
+                    ]
+            ];
+        } else {
+            return ['code' => 404, 'msg' => '暂无草稿'];
+        }
+    }
     /**
      * 录入
      */
@@ -182,6 +271,7 @@ class CustomerController extends \bagesoft\common\controllers\app\Base
                                 'projectId' => $model->id,
                                 'source' => System::SOURCE_CUSTOMER,
                             ]);
+                    CustomerDraft::deleteAll(['uid' => $this->session['uid']]);
                     Yii::$app->session->setFlash('publishSuccess', '发布成功');
                     return $this->redirect(['index']);
                 }

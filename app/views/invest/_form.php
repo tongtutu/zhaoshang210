@@ -306,6 +306,7 @@ $(document).ready(function() {
                 if (res.code === 200 && res.data) {
                     // 填充草稿数据到表单
                     var draft = res.data;
+                    
                     if (draft.tags && typeof draft.tags === 'string') {
                         // 步骤1：按制表符/空格分割成单个标签项（兼容\t、空格、多个空格）
                         var tagItems = draft.tags.split(/[\t\s]+/).filter(item => item);
@@ -322,22 +323,15 @@ $(document).ready(function() {
                         draft.tags = tagIds;
                     }
                     for (var key in draft) {
-                        if ($('#invest-' + key).length) {
-                            // 普通输入框/下拉框填充
-                            $('#invest-' + key).val(draft[key]);
-                            setTimeout(function() {
-                                $('#invest-' + key).val(draft[key]);
-                                // 触发下拉框change事件，更新联动（如有）
-                                $('#invest-' + key).trigger('change');
-                            }, 1000);
-                        } else if ($('textarea[name="Invest[' + key + ']"]').length) {
+                        if ($('textarea[name="Invest[' + key + ']"]').length) {
                             // 文本域填充
                             $('textarea[name="Invest[' + key + ']"]').val(draft[key]);
-                        }else if (key === 'content' && UE.getEditor('invest-content')) {
+                        } else if (key === 'content') {
                             var ue = UE.getEditor('invest-content');
-                                ue.ready(function() {
-                                ue.setContent(draft[key]);
+                            ue.ready(function() {
+                                ue.setContent(draft[key] || '', true);
                             });
+                            
                         }else if (key === 'tags' && Array.isArray(draft[key])) {
                             // 清空所有标签复选框的勾选状态
                             $('input[name="Invest[tags][]"]').prop('checked', false);
@@ -345,6 +339,14 @@ $(document).ready(function() {
                             draft[key].forEach(function(tagId) {
                                 $('input[name="Invest[tags][]"][value="' + tagId + '"]').prop('checked', true);
                             });
+                        }else{
+                            // 普通输入框/下拉框填充
+                            $('#invest-' + key).val(draft[key]);
+                            setTimeout(function() {
+                                $('#invest-' + key).val(draft[key]);
+                                // 触发下拉框change事件，更新联动（如有）
+                                $('#invest-' + key).trigger('change');
+                            }, 1000);
                         }
                     }
                     if (draft.manager_uid && $('#invest-manager_uid').length) {

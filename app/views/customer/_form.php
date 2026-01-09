@@ -19,6 +19,7 @@ $inputAddon = '';
 if ($model->isNewRecord) {
     $inputAddon = ' checkValue';
 }
+$isEdit = !$model->isNewRecord;
 AppAsset::addScript($this, Yii::$app->params['res.url'] . '/static/plugins/distpicker/distpicker.js');
 
 ?>
@@ -26,7 +27,7 @@ AppAsset::addScript($this, Yii::$app->params['res.url'] . '/static/plugins/distp
 <?php $form = ActiveForm::begin(
     [
         'id' => 'customer-form',
-
+        'options' => ['enctype' => 'multipart/form-data'],
     ]
 ); ?>
 <style>
@@ -36,6 +37,20 @@ AppAsset::addScript($this, Yii::$app->params['res.url'] . '/static/plugins/distp
 }
 </style>
 <div class="card">
+    <div class="card-header d-flex justify-content-end align-items-center" <?= $isEdit ? 'style="display:none !important;"' : '' ?>>
+        <div class="draft-btn-group">
+            <!-- 保存到草稿箱按钮 -->
+            <?= Html::button('<i class="fa fa-save"></i> 保存到草稿箱', [
+                'class' => 'btn btn-secondary btn-sm me-2 draft-save',
+                'id' => 'draft-save-btn'
+            ]) ?>
+            <!-- 获取最后一次草稿按钮 -->
+            <?= Html::button('<i class="fa fa-history"></i> 获取最后一次草稿', [
+                'class' => 'btn btn-info btn-sm me-2 draft-get',
+                'id' => 'draft-get-btn'
+            ]) ?>
+        </div>
+    </div>
     <div class="card-body">
         <div class="tab-content">
             <div class="tab-pane active" id="base">
@@ -247,8 +262,114 @@ AppAsset::addScript($this, Yii::$app->params['res.url'] . '/static/plugins/distp
 
 <?php
 $checkUrl = Url::toRoute(["value-check"]);
+$draftSaveUrl = Url::to(['customer/save-draft']); // 后端保存草稿接口
+$draftGetUrl = Url::to(['customer/get-last-draft']); // 后端获取草稿接口
 $this->registerJs(
     <<<JS
+$(document).ready(function() {
+    // 1. 保存到草稿箱逻辑
+    $('#draft-save-btn').click(function() {
+        // 禁用按钮防止重复提交
+        $(this).attr('disabled', true).text('保存中...');
+        
+        // 获取表单所有数据
+        var formData = $('#customer-form').serialize();
+        
+        $.ajax({
+            url: '{$draftSaveUrl}',
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(res) {
+                if (res.code === 200) {
+                    alert('草稿保存成功！');
+                } else {
+                    alert('草稿保存失败：' + res.msg);
+                }
+                // 恢复按钮状态
+                $('#draft-save-btn').attr('disabled', false).html('<i class="fa fa-save"></i> 保存到草稿箱');
+            },
+            error: function() {
+                alert('网络错误，草稿保存失败！');
+                $('#draft-save-btn').attr('disabled', false).html('<i class="fa fa-save"></i> 保存到草稿箱');
+            }
+        });
+    });
+
+    // 2. 获取最后一次草稿逻辑
+    $('#draft-get-btn').click(function() {
+        $(this).attr('disabled', true).text('加载中...');
+        
+        $.ajax({
+            url: '{$draftGetUrl}',
+            type: 'GET',
+            data: "",
+            dataType: 'json',
+            success: function(res) {
+                if (res.code === 200 && res.data) {
+                    // 填充草稿数据到表单
+                    var draft = res.data;
+                    
+                    if (draft.tags && typeof draft.tags === 'string') {
+                        // 步骤1：按制表符/空格分割成单个标签项（兼容\t、空格、多个空格）
+                        var tagItems = draft.tags.split(/[\t\s]+/).filter(item => item);
+                        // 步骤2：遍历每个标签项，提取ID
+                        var tagIds = [];
+                        tagItems.forEach(function(item) {
+                            // 按逗号分割，取第一个值（ID）并转数字
+                            var tagId = item.split(',')[0];
+                            if (tagId && !isNaN(tagId)) {
+                                tagIds.push(tagId);
+                            }
+                        });
+                        // 替换原tags为纯ID数组
+                        draft.tags = tagIds;
+                    }
+                    for (var key in draft) {
+                        if ($('textarea[name="customer[' + key + ']"]').length) {
+                            // 文本域填充
+                            $('textarea[name="customer[' + key + ']"]').val(draft[key]);
+                        } else if (key === 'content') {
+                            var ue = UE.getEditor('customer-content');
+                            ue.ready(function() {
+                                ue.setContent(draft[key] || '', false);
+                            });
+                            
+                        }else if (key === 'tags' && Array.isArray(draft[key])) {
+                            // 清空所有标签复选框的勾选状态
+                            $('input[name="Customer[tags][]"]').prop('checked', false);
+                            // 批量勾选匹配的标签（value为标签ID）
+                            draft[key].forEach(function(tagId) {
+                                $('input[name="Customer[tags][]"][value="' + tagId + '"]').prop('checked', true);
+                            });
+                        }else{
+                            // 普通输入框/下拉框填充
+                            $('#customer-' + key).val(draft[key]);
+                            setTimeout(function() {
+                                $('#customer-' + key).val(draft[key]);
+                                // 触发下拉框change事件，更新联动（如有）
+                                $('#customer-' + key).trigger('change');
+                            }, 1000);
+                        }
+                    }
+                    if (draft.partner_uid && $('#customer-partner_uid').length) {
+                        $('#customer-partner_uid').val(draft.partner_uid);
+                        $('#customer-partner_uid').trigger('change');
+                    }
+                    
+                    alert('草稿加载成功！');
+                } else {
+                    alert('暂无草稿数据');
+                }
+                $('#draft-get-btn').attr('disabled', false).html('<i class="fa fa-history"></i> 获取最后一次草稿');
+            },
+            error: function() {
+                alert('网络错误，加载草稿失败！');
+                $('#draft-get-btn').attr('disabled', false).html('<i class="fa fa-history"></i> 获取最后一次草稿');
+            }
+        });
+    });
+});    
 $("#distpicker").distpicker();
 $('.checkValue').on('blur', function() {
     var inputValue = $(this).val();

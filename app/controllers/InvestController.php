@@ -158,8 +158,6 @@ class InvestController extends \bagesoft\common\controllers\app\Base
      */
     public function actionSaveDraft()
     {
-        parent::acl();
-
         $request = Yii::$app->request->post();
         $uid = $this->session['uid'];
         $investData = $request['Invest'] ?? [];
