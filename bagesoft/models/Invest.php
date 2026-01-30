@@ -74,7 +74,15 @@ class Invest extends \bagesoft\common\models\Base
             [['channel_name', 'attach_file'], 'string', 'max' => 255],
             [['contact_name'], 'string', 'max' => 20],
             [['contact_phone'], 'string', 'max' => 11],
+            [['contact_other'], 'string', 'max' => 250],
             [['address'], 'string', 'max' => 200],
+            [
+                'contact_phone',
+                'match', // Yii2原生正则匹配验证器
+                'pattern' => '/^1[3-9]\d{9}$/', // 中国大陆11位手机号正则
+                'skipOnEmpty' => true, // 空值时跳过（空值校验由原有required规则处理）
+                'message' => '{attribute}格式错误，请输入有效的11位手机号码' // 动态替换字段标签
+            ],
             [
                 'manager_uid',
                 'required',
@@ -162,7 +170,8 @@ class Invest extends \bagesoft\common\models\Base
             'channel_id' => '渠道',
             'channel_name' => '渠道名称',
             'contact_name' => '联系人',
-            'contact_phone' => '联系方式',
+            'contact_phone' => '联系方式(手机)',
+            'contact_other' => '其他联系方式',
             'province' => '省份',
             'city' => '城市',
             'area' => '区域',

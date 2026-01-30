@@ -71,8 +71,13 @@ $this->params['breadcrumbs'][] = '详情';
                                         </td>
                                     </tr>
                                     <tr>
-                                        <th>联系方式:</th>
+                                        <th>联系方式（手机）:</th>
                                         <td><?php echo Html::encode(ProjectFunc::hidePhone($model->uid, $this->context->user->id, $model->contact_phone)); ?>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>其他联系方式:</th>
+                                        <td><?php echo Html::encode(ProjectFunc::hidePhone($model->uid, $this->context->user->id, $model->contact_other)); ?>
                                         </td>
                                     </tr>
                                     <tr>

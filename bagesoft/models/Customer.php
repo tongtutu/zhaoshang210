@@ -69,6 +69,13 @@ class Customer extends \bagesoft\common\models\Base
             [['realname', 'phone', 'phone1'], 'string', 'max' => 20],
             [['address'], 'string', 'max' => 200],
             [['attach_file'], 'string', 'max' => 255],
+            [
+                'phone',
+                'match', // Yii2原生正则匹配验证器
+                'pattern' => '/^1[3-9]\d{9}$/', // 中国大陆11位手机号正则
+                'skipOnEmpty' => true, // 空值时跳过（空值校验由原有required规则处理）
+                'message' => '{attribute}格式错误，请输入有效的11位手机号码' // 动态替换字段标签
+            ],
             [['tags'], 'required', 'message' => '项目标签必须选择', 'on' => ['create', 'update']],
             [['tags'], 'validateTags', 'on' => ['create', 'update']],
         ];
@@ -106,7 +113,7 @@ class Customer extends \bagesoft\common\models\Base
             'sex' => '性别',
             'usci_code' => '统一信用代码',
             'job_title' => '职务',
-            'phone' => '联系方式1',
+            'phone' => '联系方式1(手机号码)',
             'phone1' => '联系方式2',
             'province' => '省份',
             'city' => '城市',

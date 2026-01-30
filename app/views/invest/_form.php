@@ -69,8 +69,11 @@ AppAsset::addScript($this, Yii::$app->params['res.url'] . '/static/plugins/distp
                                 <?php echo $form->field($model, 'contact_name', ['inputOptions' => ['class' => 'form-control ' . $inputAddon, 'data-field' => 'contactName']])->textInput(['maxlength' => true])->label($model->getAttributeLabel('contact_name') . ' <span class="required-star">*</span>'); ?>
                             </div>
 
-                            <div class="col-lg-6">
+                            <div class="col-lg-3">
                                 <?php echo $form->field($model, 'contact_phone', ['inputOptions' => ['class' => 'form-control ' . $inputAddon, 'data-field' => 'phone']])->textInput(['maxlength' => true])->label($model->getAttributeLabel('contact_phone') . ' <span class="required-star">*</span>'); ?>
+                            </div>
+                            <div class="col-lg-3">
+                                <?php echo $form->field($model, 'contact_other')->textInput(['maxlength' => true])->label($model->getAttributeLabel('contact_other') . ' <span class="required-star"></span>'); ?>
                             </div>
                         </div>
                         <div class="row">
