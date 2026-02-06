@@ -125,6 +125,17 @@ class InvestFunc
                 $project->username = $newUser->username;
             }
         }
-        $project->save();
+        // 使用update方法只更新必要的字段，提高性能
+        $updateData = [
+            'uid' => $newUser->id,
+            'username' => $newUser->username,
+        ];
+        
+        // 如果是转移给项目经理的情况，还需要更新manager相关字段
+        if ($project->manager_uid == $newUser->id) {
+            $updateData['manager_uid'] = 0;
+            $updateData['manager_name'] = '';
+        } 
+        $result = $project->updateAttributes($updateData);
     }
 }
