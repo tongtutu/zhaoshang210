@@ -401,7 +401,7 @@ class InvestController extends \bagesoft\common\controllers\app\Base
         $dateAt = trim($request->get('date'));
         $dateAt = Utils::dateRange($dateAt);
 
-        $model->where('uid=:uid AND deleted=:deleted OR manager_uid=:managerUid', ['uid' => $uid, 'managerUid' => $this->session['uid'], 'deleted' => System::DELETE_LEVEL_1]);
+        $model->where('uid=:uid AND deleted=:deleted OR manager_uid=:managerUid OR vice_manager_uid=:vmanagerUid', ['uid' => $uid, 'managerUid' => $this->session['uid'],'vmanagerUid' => $this->session['uid'], 'deleted' => System::DELETE_LEVEL_1]);
 
         if ($projectName) {
             $model->andWhere(['like', 'project_name', $projectName]);
